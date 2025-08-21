@@ -8,62 +8,44 @@ y enviarlos a Google Sheets. Utiliza el patrón ConversationHandler de python-te
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler, CommandHandler, MessageHandler, CallbackQueryHandler, filters
 from typing import List
+from datetime import datetime  # Importamos datetime para las marcas temporales
 
 # Importaciones propias de la aplicación
 from utils.google_sheets import append_row  # Función para enviar datos a Google Sheets
 from config import GOOGLE_SPREADSHEET_ID, GOOGLE_SHEET_NAME  # Configuración de la hoja de cálculo
 
-# DEFINICIÓN DE ESTADOS DE LA CONVERSACIÓN
-# Cada estado representa un paso en el flujo de recolección de datos
+# DEFINICIÓN DE ESTADOS DE LA CONVERSACIÓN - NUEVO ORDEN
 (
-    ENTIDAD,          # Paso 1: Selección de entidad
-    FECHA,            # Paso 2: Ingreso de fecha
-    SUB_REGION,       # Paso 3: Selección de subregión
-    MUNICIPIO,        # Paso 4: Selección de municipio
-    PARROQUIA,        # Paso 5: Ingreso de parroquia
-    NODO,             # Paso 6: Ingreso de nodo
-    CEDULA,           # Paso 7: Ingreso de cédula
-    CARGO,            # Paso 8: Selección de cargo
-    CORREO,           # Paso 9: Ingreso de correo
-    SELECCION_PROYECTOS,  # Paso 10: Selección de proyectos
-    RELLENAR_PROYECTO,    # Paso 11: Rellenar datos de cada proyecto
-    CONFIRMAR,            # Paso 12: Confirmación y envío
-) = range(12)  # Asigna números del 0 al 11 a cada estado
+    CEDULA,           # Paso 1: Cédula (Columna C)
+    CORREO,           # Paso 2: Correo (Columna D)
+    MUNICIPIO,        # Paso 3: Municipio (Columna E)
+    PARROQUIA,        # Paso 4: Parroquia (Columna F)
+    ENTIDAD,          # Paso 5: Estado (Columna G)
+    NODO,             # Paso 6: Nodo (Columna H)
+    CARGO,            # Paso 7: Cargo (Columna I)
+    SELECCION_PROYECTOS,  # Paso 8: Selección de proyectos
+    RELLENAR_PROYECTO,    # Paso 9: Rellenar datos de cada proyecto
+    CONFIRMAR_PROYECTO,   # Paso 10: Confirmación de proyecto individual
+    CONFIRMAR_ENVIO,      # Paso 11: Confirmación final y envío
+) = range(11)  # Asigna números del 0 al 10 a cada estado
 
-# OPCIONES PREESTABLECIDAS PARA LOS MENÚS DESPLEGABLES
-ENTIDADES = ["ZULIA"]  # Lista de entidades disponibles
-SUB_REGIONES = ["COL I", "COL II", "CAÑADA PERIJA", "MARA GUAJIRA", "MARACAIBO", "SAN FRANCISCO", "SUR DEL LAGO"]  # Subregiones
-MUNICIPIOS = [  # Lista de municipios
-  "ALMIRANTE PADILLA",
-  "BARALT",
-  "CABIMAS",
-  "CATATUMBO",
-  "COLON",
-  "FRANCISCO JAVIER PULGAR",
-  "JESUS ENRIQUE LOSSADA",
-  "JESUS MARIA SEMPRUN",
-  "LA CAÑADA DE URDANETA",
-  "LAGUNILLAS",
-  "MACHIQUES DE PERIJA",
-  "MARA",
-  "MARACAIBO",
-  "MIRANDA",
-  "PAEZ",
-  "ROSARIO DE PERIJA",
-  "SAN FRANCISCO",
-  "SANTA RITA",
-  "SIMON BOLIVAR",
-  "SUCRE",
-  "VALMORES RODRIGUEZ"
+# OPCIONES PREESTABLECIDAS
+ENTIDADES = ["ZULIA"]
+MUNICIPIOS = [
+  "ALMIRANTE PADILLA", "BARALT", "CABIMAS", "CATATUMBO", "COLON", 
+  "FRANCISCO JAVIER PULGAR", "JESUS ENRIQUE LOSSADA", "JESUS MARIA SEMPRUN",
+  "LA CAÑADA DE URDANETA", "LAGUNILLAS", "MACHIQUES DE PERIJA", "MARA",
+  "MARACAIBO", "MIRANDA", "PAEZ", "ROSARIO DE PERIJA", "SAN FRANCISCO",
+  "SANTA RITA", "SIMON BOLIVAR", "SUCRE", "VALMORES RODRIGUEZ"
 ]
-CARGOS = [  # Lista de cargos disponibles
+CARGOS = [
   "COORDINADOR MUNICIPAL",
   "COORDINADOR NODO",
   "SUPERVISOR DE NODO",
   "VERIFICADOR ENCUESTADOR INTEGRAR"
 ]
 
-# LISTA DE PROYECTOS DISPONIBLES (definida más adelante en el código)
+# LISTA DE PROYECTOS DISPONIBLES
 PROYECTOS = [
     "Proyecto 1", "Proyecto 2", "Proyecto 3",
     "Proyecto 4", "Proyecto 5", "Proyecto 6",
@@ -73,103 +55,37 @@ PROYECTOS = [
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Función inicial que comienza la conversación.
-    Se ejecuta cuando el usuario envía el comando /start.
     """
-    # Limpiar datos de usuario previos para evitar conflictos
     context.user_data.clear()
+    await update.message.reply_text("👋 Bienvenido.\n\n🪪 Ingrese la CÉDULA DE IDENTIDAD:")
+    return CEDULA
+
+async def cedula(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Maneja el ingreso de cédula (Columna C).
+    """
+    context.user_data["CEDULA"] = update.message.text
+    await update.message.reply_text("📧 Ingrese su CORREO ELECTRÓNICO:")
+    return CORREO
+
+async def correo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Maneja el ingreso de correo (Columna D).
+    """
+    context.user_data["CORREO"] = update.message.text
     
-    # Crear teclado con botones para selección de entidad
-    keyboard = [[InlineKeyboardButton(ent, callback_data=ent)] for ent in ENTIDADES]
-    keyboard.append([InlineKeyboardButton("✅ Done", callback_data="done")])  # Botón para continuar
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
-    # Inicializar dato de entidad y enviar mensaje
-    context.user_data["ENTIDAD"] = None
-    await update.message.reply_text("👋 Bienvenido.\n\nSeleccione la ENTIDAD:", reply_markup=reply_markup)
-    return ENTIDAD  # Pasar al siguiente estado
-
-async def entidad(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Maneja la selección de entidad mediante botones interactivos.
-    """
-    query = update.callback_query  # Obtener la selección del usuario
-    await query.answer()  # Responder a la consulta de callback
-
-    if query.data == "done":
-        # Usuario presionó "Done", verificar que haya seleccionado una entidad
-        if not context.user_data["ENTIDAD"]:
-            await query.edit_message_text("⚠️ Debe seleccionar una ENTIDAD.")
-            return ENTIDAD  # Permancer en el mismo estado
-        # Continuar al siguiente paso: ingresar fecha
-        await query.edit_message_text(f"✅ ENTIDAD seleccionada: {context.user_data['ENTIDAD']}\n\n📅 Ingrese la FECHA (dd/mm/aaaa):")
-        return FECHA
-    else:
-        # Usuario seleccionó una entidad, guardarla y actualizar interfaz
-        context.user_data["ENTIDAD"] = query.data
-        keyboard = [[InlineKeyboardButton(ent, callback_data=ent)] for ent in ENTIDADES]
-        keyboard.append([InlineKeyboardButton("✅ Done", callback_data="done")])
-        await query.edit_message_text(
-            f"👉 ENTIDAD seleccionada: {query.data}\nPresione ✅ Done para continuar.",
-            reply_markup=InlineKeyboardMarkup(keyboard),
-        )
-        return ENTIDAD  # Permancer en el mismo estado hasta que presione "Done"
-
-async def fecha(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Maneja el ingreso de fecha mediante texto libre.
-    """
-    context.user_data["FECHA"] = update.message.text  # Guardar fecha ingresada
-
-    # Preparar siguiente paso: selección de subregión con botones
-    keyboard = [[InlineKeyboardButton(sr, callback_data=sr)] for sr in SUB_REGIONES]
+    # Preparar selección de municipio
+    keyboard = [[InlineKeyboardButton(m, callback_data=m)] for m in MUNICIPIOS]
     keyboard.append([InlineKeyboardButton("✅ Done", callback_data="done")])
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    context.user_data["SUB_REGION"] = None
-    await update.message.reply_text("🌍 Seleccione la SUB REGIÓN OPERATIVA:", reply_markup=reply_markup)
-    return SUB_REGION
-
-async def sub_region(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Maneja la selección de subregión mediante botones interactivos.
-    """
-    query = update.callback_query
-    await query.answer()
-
-    if query.data == "done":
-        if not context.user_data["SUB_REGION"]:
-            await query.edit_message_text("⚠️ Debe seleccionar una SUB REGIÓN.")
-            return SUB_REGION
-        
-        # Preparar siguiente paso: selección de municipio
-        keyboard = [[InlineKeyboardButton(m, callback_data=m)] for m in MUNICIPIOS]
-        keyboard.append([InlineKeyboardButton("✅ Done", callback_data="done")])
-        reply_markup = InlineKeyboardMarkup(keyboard)
-
-        context.user_data["MUNICIPIO"] = None
-        await query.edit_message_text("🏙 Seleccione el MUNICIPIO:", reply_markup=reply_markup)
-        return MUNICIPIO
-    else:
-        context.user_data["SUB_REGION"] = query.data
-        keyboard = [[InlineKeyboardButton(sr, callback_data=sr)] for sr in SUB_REGIONES]
-        keyboard.append([InlineKeyboardButton("✅ Done", callback_data="done")])
-        await query.edit_message_text(
-            f"👉 SUB REGIÓN seleccionada: {query.data}\nPresione ✅ Done para continuar.",
-            reply_markup=InlineKeyboardMarkup(keyboard),
-        )
-        return SUB_REGION
-
-async def parroquia(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Maneja el ingreso de parroquia mediante texto libre.
-    """
-    context.user_data["PARROQUIA"] = update.message.text
-    await update.message.reply_text("🏘 Ingrese el NODO:")
-    return NODO
+    context.user_data["MUNICIPIO"] = None
+    await update.message.reply_text("🏙 Seleccione el MUNICIPIO:", reply_markup=reply_markup)
+    return MUNICIPIO
 
 async def municipio(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
-    Maneja la selección de municipio mediante botones interactivos.
+    Maneja la selección de municipio (Columna E).
     """
     query = update.callback_query
     await query.answer()
@@ -190,21 +106,51 @@ async def municipio(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return MUNICIPIO
 
+async def parroquia(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Maneja el ingreso de parroquia (Columna F).
+    """
+    context.user_data["PARROQUIA"] = update.message.text
+    
+    # Preparar selección de entidad (estado)
+    keyboard = [[InlineKeyboardButton(ent, callback_data=ent)] for ent in ENTIDADES]
+    keyboard.append([InlineKeyboardButton("✅ Done", callback_data="done")])
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    context.user_data["ENTIDAD"] = None
+    await update.message.reply_text("🏛 Seleccione la ENTIDAD/ESTADO:", reply_markup=reply_markup)
+    return ENTIDAD
+
+async def entidad(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Maneja la selección de entidad/estado (Columna G).
+    """
+    query = update.callback_query
+    await query.answer()
+
+    if query.data == "done":
+        if not context.user_data["ENTIDAD"]:
+            await query.edit_message_text("⚠️ Debe seleccionar una ENTIDAD.")
+            return ENTIDAD
+        await query.edit_message_text(f"✅ ENTIDAD: {context.user_data['ENTIDAD']}\n\n🏘 Ingrese el NODO:")
+        return NODO
+    else:
+        context.user_data["ENTIDAD"] = query.data
+        keyboard = [[InlineKeyboardButton(ent, callback_data=ent)] for ent in ENTIDADES]
+        keyboard.append([InlineKeyboardButton("✅ Done", callback_data="done")])
+        await query.edit_message_text(
+            f"👉 ENTIDAD seleccionada: {query.data}\nPresione ✅ Done para continuar.",
+            reply_markup=InlineKeyboardMarkup(keyboard),
+        )
+        return ENTIDAD
+
 async def nodo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
-    Maneja el ingreso de nodo mediante texto libre.
+    Maneja el ingreso de nodo (Columna H).
     """
     context.user_data["NODO"] = update.message.text
-    await update.message.reply_text("🪪 Ingrese la CÉDULA DE IDENTIDAD:")
-    return CEDULA
-
-async def cedula(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Maneja el ingreso de cédula mediante texto libre.
-    """
-    context.user_data["CEDULA"] = update.message.text
-
-    # Preparar siguiente paso: selección de cargo con botones
+    
+    # Preparar selección de cargo
     keyboard = [[InlineKeyboardButton(c, callback_data=c)] for c in CARGOS]
     keyboard.append([InlineKeyboardButton("✅ Done", callback_data="done")])
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -215,7 +161,7 @@ async def cedula(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def cargo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
-    Maneja la selección de cargo mediante botones interactivos.
+    Maneja la selección de cargo (Columna I).
     """
     query = update.callback_query
     await query.answer()
@@ -224,9 +170,18 @@ async def cargo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not context.user_data["CARGO"]:
             await query.edit_message_text("⚠️ Debe seleccionar un CARGO.")
             return CARGO
-        # Ir a solicitar correo electrónico
-        await query.edit_message_text("📧 Ingrese su CORREO ELECTRÓNICO:")
-        return CORREO
+        
+        # Ir a selección de proyectos
+        context.user_data["selected_projects"] = []
+        keyboard = []
+        for proy in PROYECTOS:
+            keyboard.append([InlineKeyboardButton(proy, callback_data=proy)])
+        keyboard.append([InlineKeyboardButton("✅ Done", callback_data="done")])
+        await query.edit_message_text(
+            "✔️ Datos básicos completados.\n\n📌 Seleccione los proyectos en los que participa (puede elegir varios) y luego pulse ✅ Done.",
+            reply_markup=InlineKeyboardMarkup(keyboard),
+        )
+        return SELECCION_PROYECTOS
     else:
         context.user_data["CARGO"] = query.data
         keyboard = [[InlineKeyboardButton(c, callback_data=c)] for c in CARGOS]
@@ -237,28 +192,8 @@ async def cargo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return CARGO
 
-async def correo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Maneja el ingreso de correo electrónico mediante texto libre.
-    """
-    context.user_data["CORREO"] = update.message.text
-    
-    # Ir a selección de proyectos
-    context.user_data["selected_projects"] = []  # Inicializar lista de proyectos seleccionados
-    keyboard = []
-    for proy in PROYECTOS:
-        keyboard.append([InlineKeyboardButton(proy, callback_data=proy)])
-    keyboard.append([InlineKeyboardButton("✅ Done", callback_data="done")])
-    await update.message.reply_text(
-        "✔️ Datos básicos completados.\n\n📌 Seleccione los proyectos en los que participa (puede elegir varios) y luego pulse ✅ Done.",
-        reply_markup=InlineKeyboardMarkup(keyboard),
-    )
-    return SELECCION_PROYECTOS
-
 async def seleccionar_proyectos(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Maneja la selección múltiple de proyectos mediante botones interactivos.
-    """
+    """Maneja la selección múltiple de proyectos."""
     query = update.callback_query
     await query.answer()
     seleccion = query.data
@@ -269,22 +204,18 @@ async def seleccionar_proyectos(update: Update, context: ContextTypes.DEFAULT_TY
             await query.edit_message_text("⚠️ Debe seleccionar al menos un proyecto.")
             return SELECCION_PROYECTOS
 
-        # Comenzar a recoger datos para el primer proyecto
         context.user_data["current_project_index"] = 0
         await query.edit_message_text(
-            f"✍️ Vamos con *{proyectos[0]}*.\n\nIngrese SEGMENTOS TRABAJADOS:",
+            f"✍️ Vamos con *{proyectos[0]}*.\n\nIngrese la SEMANA:",
             parse_mode="Markdown"
         )
         return RELLENAR_PROYECTO
-
     else:
-        # Alternar selección (agregar o quitar)
         if seleccion in context.user_data["selected_projects"]:
             context.user_data["selected_projects"].remove(seleccion)
         else:
             context.user_data["selected_projects"].append(seleccion)
 
-        # Actualizar interfaz con marcas de selección
         keyboard = []
         for proy in PROYECTOS:
             marca = "✅ " if proy in context.user_data["selected_projects"] else ""
@@ -299,14 +230,11 @@ async def seleccionar_proyectos(update: Update, context: ContextTypes.DEFAULT_TY
         return SELECCION_PROYECTOS
 
 async def rellenar_proyecto(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Maneja el ingreso de datos para cada proyecto seleccionado.
-    """
+    """Maneja el ingreso de datos para cada proyecto seleccionado."""
     proyectos = context.user_data["selected_projects"]
     idx = context.user_data["current_project_index"]
     proyecto = proyectos[idx]
 
-    # Inicializar estructura de datos para proyectos si no existe
     if "proyectos_data" not in context.user_data:
         context.user_data["proyectos_data"] = {}
 
@@ -315,126 +243,200 @@ async def rellenar_proyecto(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     data_proy = context.user_data["proyectos_data"][proyecto]
 
-    # Solicitar datos en secuencia: segmentos, manzanas, encuestas, semana
-    if "SEGMENTOS" not in data_proy:
+    # Nuevo orden: Semana -> Segmentos -> Manzanas -> Encuestas
+    if "SEMANA" not in data_proy:
+        data_proy["SEMANA"] = update.message.text
+        await update.message.reply_text("Ingrese los SEGMENTOS TRABAJADOS:")
+        return RELLENAR_PROYECTO
+
+    elif "SEGMENTOS" not in data_proy:
         data_proy["SEGMENTOS"] = update.message.text
-        await update.message.reply_text("Ingrese MANZANAS TRABAJADAS:")
+        await update.message.reply_text("Ingrese las MANZANAS TRABAJADAS:")
         return RELLENAR_PROYECTO
 
     elif "MANZANAS" not in data_proy:
         data_proy["MANZANAS"] = update.message.text
-        await update.message.reply_text("Ingrese CANTIDAD DE ENCUESTAS:")
+        await update.message.reply_text("Ingrese la CANTIDAD DE ENCUESTAS:")
         return RELLENAR_PROYECTO
 
     elif "ENCUESTAS" not in data_proy:
         data_proy["ENCUESTAS"] = update.message.text
-        await update.message.reply_text("Ingrese SEMANA:")
-        return RELLENAR_PROYECTO
+        
+        # Mostrar resumen y pedir confirmación para este proyecto
+        resumen = f"""
+📋 *Resumen de {proyecto}:*
+        
+🗓 *Semana:* {data_proy['SEMANA']}
+📍 *Segmentos:* {data_proy['SEGMENTOS']}
+🏘 *Manzanas:* {data_proy['MANZANAS']}
+📊 *Encuestas:* {data_proy['ENCUESTAS']}
 
-    elif "SEMANA" not in data_proy:
-        data_proy["SEMANA"] = update.message.text
+¿Los datos son correctos? (si/no)
+Si hay algún error, responde 'no' para volver a llenar este proyecto.
+        """
+        
+        await update.message.reply_text(resumen, parse_mode="Markdown")
+        return CONFIRMAR_PROYECTO
 
-        # Pasar al siguiente proyecto o terminar
+async def confirmar_proyecto(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Maneja la confirmación o corrección de cada proyecto individual."""
+    respuesta = update.message.text.lower()
+    proyectos = context.user_data["selected_projects"]
+    idx = context.user_data["current_project_index"]
+    proyecto = proyectos[idx]
+    
+    if respuesta == 'si':
+        # Proyecto confirmado, pasar al siguiente
         idx += 1
         if idx < len(proyectos):
             context.user_data["current_project_index"] = idx
             await update.message.reply_text(
-                f"✅ {proyecto} completado.\n\nAhora vamos con *{proyectos[idx]}*.\nIngrese SEGMENTOS TRABAJADOS:",
+                f"✅ *{proyecto}* confirmado.\n\nAhora vamos con *{proyectos[idx]}*.\nIngrese la SEMANA:",
                 parse_mode="Markdown"
             )
             return RELLENAR_PROYECTO
         else:
-            # Todos los proyectos completados, pedir confirmación
-            await update.message.reply_text(
-                "✅ Todos los proyectos han sido llenados.\n\n¿Desea confirmar y enviar los datos? (si/no)"
-            )
-            return CONFIRMAR
+            # Todos los proyectos completados y confirmados
+            await mostrar_resumen_final(update, context)
+            return CONFIRMAR_ENVIO
+            
+    elif respuesta == 'no':
+        # Volver a llenar el mismo proyecto
+        del context.user_data["proyectos_data"][proyecto]  # Eliminar datos incorrectos
+        await update.message.reply_text(
+            f"🔄 Vamos a corregir *{proyecto}*.\n\nIngrese la SEMANA:",
+            parse_mode="Markdown"
+        )
+        return RELLENAR_PROYECTO
         
-async def confirmar(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Maneja la confirmación y envío final de datos a Google Sheets.
-    """
+    else:
+        await update.message.reply_text("❌ Por favor, responda 'si' o 'no'.")
+        return CONFIRMAR_PROYECTO
+
+async def mostrar_resumen_final(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Muestra un resumen final de todos los datos antes del envío."""
+    user_data = context.user_data
+    proyectos_data = user_data.get("proyectos_data", {})
+    
+    resumen = "📋 *RESUMEN FINAL DE TODOS LOS DATOS*\n\n"
+    
+    # Datos básicos
+    resumen += f"*👤 Datos Personales:*\n"
+    resumen += f"🪪 Cédula: {user_data.get('CEDULA', '')}\n"
+    resumen += f"📧 Correo: {user_data.get('CORREO', '')}\n"
+    resumen += f"🏙 Municipio: {user_data.get('MUNICIPIO', '')}\n"
+    resumen += f"🏘 Parroquia: {user_data.get('PARROQUIA', '')}\n"
+    resumen += f"🏛 Estado: {user_data.get('ENTIDAD', '')}\n"
+    resumen += f"📍 Nodo: {user_data.get('NODO', '')}\n"
+    resumen += f"👔 Cargo: {user_data.get('CARGO', '')}\n\n"
+    
+    # Proyectos
+    resumen += f"*📊 Proyectos seleccionados ({len(user_data.get('selected_projects', []))}):*\n"
+    for proyecto in user_data.get("selected_projects", []):
+        data = proyectos_data.get(proyecto, {})
+        resumen += f"🔹 *{proyecto}:*\n"
+        resumen += f"   🗓 Semana: {data.get('SEMANA', '')}\n"
+        resumen += f"   📍 Segmentos: {data.get('SEGMENTOS', '')}\n"
+        resumen += f"   🏘 Manzanas: {data.get('MANZANAS', '')}\n"
+        resumen += f"   📊 Encuestas: {data.get('ENCUESTAS', '')}\n\n"
+    
+    resumen += "¿Desea confirmar y enviar TODOS los datos? (si/no)\n"
+    resumen += "⚠️ *Una vez enviados, no podrán modificarse*"
+    
+    await update.message.reply_text(resumen, parse_mode="Markdown")
+
+async def confirmar_envio(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Maneja la confirmación final y envío de todos los datos."""
     if update.message.text.lower() == "si":
         try:
-            # Construir fila para Google Sheets y enviar
             row = _build_google_row(context)
             append_row(
                 spreadsheet_id=GOOGLE_SPREADSHEET_ID,
                 sheet_name=GOOGLE_SHEET_NAME,
                 row_values=row,
             )
-            await update.message.reply_text("📤 Datos enviados con éxito a Google Sheets.")
+            await update.message.reply_text("✅ 📤 *Datos enviados con éxito a Google Sheets.*", parse_mode="Markdown")
         except Exception as e:
-            await update.message.reply_text(f"❌ Error enviando a Google Sheets: {e}")
+            await update.message.reply_text(f"❌ *Error enviando a Google Sheets:* {e}", parse_mode="Markdown")
     else:
-        await update.message.reply_text("❌ Proceso cancelado.")
-    return ConversationHandler.END  # Terminar la conversación
+        await update.message.reply_text("❌ Proceso cancelado. Los datos no fueron enviados.")
+    
+    return ConversationHandler.END
 
 def _build_google_row(context: ContextTypes.DEFAULT_TYPE) -> List[str]:
     """
-    Construye una fila con los datos del usuario en el formato esperado por Google Sheets.
+    Construye una fila con los datos del usuario en el nuevo formato para Google Sheets.
     """
     user_data = context.user_data
-    # Datos básicos (columnas B-J)
-    base = [
-        user_data.get("CORREO", ""),      # Columna B - CORREO ELECTRONICO
-        user_data.get("ENTIDAD", ""),     # Columna C - ENTIDAD
-        user_data.get("FECHA", ""),       # Columna D - FECHA
-        user_data.get("SUB_REGION", ""),  # Columna E - SUB REGION OPERATIVA
-        user_data.get("MUNICIPIO", ""),   # Columna F - MUNICIPIO
-        user_data.get("PARROQUIA", ""),   # Columna G - PARROQUIA
-        user_data.get("NODO", ""),        # Columna H - NODO
-        user_data.get("CEDULA", ""),      # Columna I - CEDULA DE IDENTIDAD
-        user_data.get("CARGO", ""),       # Columna J - CARGO
+    now = datetime.now()
+    
+    # Datos automáticos (columnas A-B)
+    automaticos = [
+        now.strftime("%Y-%m-%d %H:%M:%S"),  # Columna A - Marca temporal
+        now.strftime("%Y-%m-%d"),           # Columna B - Fecha de levantamiento
     ]
-
+    
+    # Datos básicos del usuario (columnas C-I) - Mismo orden que la conversación
+    basicos = [
+        user_data.get("CEDULA", ""),        # Columna C - CÉDULA DE IDENTIDAD
+        user_data.get("CORREO", ""),        # Columna D - CORREO ELECTRONICO
+        user_data.get("MUNICIPIO", ""),     # Columna E - MUNICIPIO
+        user_data.get("PARROQUIA", ""),     # Columna F - PARROQUIA
+        user_data.get("ENTIDAD", ""),       # Columna G - ESTADO
+        user_data.get("NODO", ""),          # Columna H - NODO
+        user_data.get("CARGO", ""),         # Columna I - CARGO
+    ]
+    
+    # Datos de proyectos (columnas J-AS)
     proyectos_cols: List[str] = []
     selected: List[str] = user_data.get("selected_projects", [])
     data: dict = user_data.get("proyectos_data", {})
-
-    # Para cada proyecto (1-9), agregar 4 columnas con sus datos o vacío
+    
     for i in range(1, 10):
         nombre = f"Proyecto {i}"
         if nombre in selected and nombre in data:
             d = data.get(nombre, {})
             proyectos_cols.extend([
-                d.get("SEGMENTOS", ""),  # Primera columna del proyecto
-                d.get("MANZANAS", ""),   # Segunda columna del proyecto
-                d.get("ENCUESTAS", ""),  # Tercera columna del proyecto
-                d.get("SEMANA", ""),     # Cuarta columna del proyecto
+                d.get("SEMANA", ""),        # Semana
+                d.get("SEGMENTOS", ""),     # Segmentos trabajados
+                d.get("MANZANAS", ""),      # Manzanas trabajadas
+                d.get("ENCUESTAS", ""),     # Cantidad de encuestas
             ])
         else:
-            proyectos_cols.extend(["", "", "", ""])  # Vacíos si no participa
+            proyectos_cols.extend(["", "", "", ""])
 
-    return base + proyectos_cols  # Combinar datos básicos con datos de proyectos
+    return automaticos + basicos + proyectos_cols
+
 # Manejador de conversación que agrupa todos los estados y handlers
 def get_conv_handler() -> ConversationHandler:
     """
-    Crea y configura el manejador de conversación con todos los estados y handlers.
+    Crea y configura el manejador de conversación con todos los estados и handlers.
     """
     return ConversationHandler(
-        entry_points=[CommandHandler("start", start)],  # Comando que inicia la conversación
+        entry_points=[CommandHandler("start", start)],
         states={
-            # Asociar cada estado con su handler correspondiente
-            ENTIDAD: [CallbackQueryHandler(entidad)],
-            FECHA: [MessageHandler(filters.TEXT & ~filters.COMMAND, fecha)],
-            SUB_REGION: [CallbackQueryHandler(sub_region)],
-            PARROQUIA: [MessageHandler(filters.TEXT & ~filters.COMMAND, parroquia)],
-            MUNICIPIO: [CallbackQueryHandler(municipio)],
-            NODO: [MessageHandler(filters.TEXT & ~filters.COMMAND, nodo)],
+            # Nuevo orden de estados según las columnas
             CEDULA: [MessageHandler(filters.TEXT & ~filters.COMMAND, cedula)],
-            CARGO: [CallbackQueryHandler(cargo)],
             CORREO: [MessageHandler(filters.TEXT & ~filters.COMMAND, correo)],
+            MUNICIPIO: [CallbackQueryHandler(municipio)],
+            PARROQUIA: [MessageHandler(filters.TEXT & ~filters.COMMAND, parroquia)],
+            ENTIDAD: [CallbackQueryHandler(entidad)],
+            NODO: [MessageHandler(filters.TEXT & ~filters.COMMAND, nodo)],
+            CARGO: [CallbackQueryHandler(cargo)],
             SELECCION_PROYECTOS: [CallbackQueryHandler(seleccionar_proyectos)],
             RELLENAR_PROYECTO: [MessageHandler(filters.TEXT & ~filters.COMMAND, rellenar_proyecto)],
-            CONFIRMAR: [MessageHandler(filters.TEXT & ~filters.COMMAND, confirmar)],
+            CONFIRMAR_PROYECTO: [MessageHandler(filters.TEXT & ~filters.COMMAND, confirmar_proyecto)],
+            CONFIRMAR_ENVIO: [MessageHandler(filters.TEXT & ~filters.COMMAND, confirmar_envio)],
         },
-        fallbacks=[CommandHandler("cancel", cancel)],  # Comando para cancelar la conversación
-        per_chat=True,    # Una conversación por chat
-        per_user=True,    # Una conversación por usuario
+        fallbacks=[CommandHandler("cancel", cancel)],
+        per_chat=True,
+        per_user=True,
     )
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Maneja la cancelación de la conversación."""
+    await update.message.reply_text("Operación cancelada.")
+    return ConversationHandler.END
     """
     Maneja la cancelación de la conversación.
     """
