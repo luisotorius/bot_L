@@ -1,0 +1,238 @@
+B - FECHA DEL LEVANTAMIENTO
+
+C - CÉDULA DE IDENTIDAD
+
+D - CORREO ELECTRONICO
+
+E - NODO
+
+F - ESTADO
+
+G - MUNICIPIO
+Almirante Padilla
+Baralt
+Cabimas
+Catatumbo
+Colón
+Francisco Javier Pulgar
+Jesús Enrique Losad
+Jesús María Semprún
+La Cañada de Urdaneta
+ Lagunillas
+Machiques de Perijá
+Mara
+Maracaibo
+Miranda
+GOAJIRA
+Rosario de Perijá
+San Francisco
+Santa Rita
+Simón Bolívar
+Sucre
+Valmore Rodríguez
+
+H - PARROQUIA
+-Almirante Padilla
+Isla de Toas
+Monagas
+
+-Baralt
+San Timoteo
+General Urdaneta
+Libertador
+Manuel Guanipa Matos
+Rómulo Betancourt
+Pueblo Nuevo
+
+-Cabimas
+Ambrosio
+Carmen Herrera
+Germán Ríos Linares
+La Rosa
+Jorge Hernández
+Rómulo Betancourt
+San Benito
+Arístides Calvani
+Punta Gorda
+
+-Catatumbo
+Encontrados
+Udón Pérez
+
+-Colón
+San Carlos del Zulia
+Moralito
+Santa Bárbara
+Santa Cruz del Zulia
+Urribarrí
+
+-Francisco Javier Pulgar
+Simón Rodríguez
+Carlos Quevedo
+Francisco Javier Pulgar
+Agustín Codazzi
+
+-Jesús Enrique Losada
+La Concepción
+José Ramón Yépez
+Mariano Parra León
+San José
+
+-Jesús María Semprún
+Jesús María Semprún
+Barí
+
+-La Cañada de Urdaneta
+Concepción
+Andrés Bello
+Chiquinquirá
+El Carmelo
+Potreritos
+
+-Lagunillas
+Alonso de Ojeda
+Libertad
+Campo Lara
+Eleazar López Contreras
+Venezuela
+El Danto
+
+-Machiques de Perijá
+Libertad
+Bartolomé de las Casas
+Río Negro
+San José de Perijá
+
+-Mara
+San Rafael
+La Sierrita
+Las Parcelas
+Luis de Vicente
+Monseñor Marcos Sergio Godoy
+Ricaurte
+Tamare
+
+-Maracaibo
+Antonio Borjas Romero
+Bolívar
+Cacique Mara
+Caracciolo Parra Pérez
+Cecilio Acosta
+Cristo de Aranza
+Coquivacoa
+Chiquinquirá
+Francisco Eugenio Bustamante
+Idelfonso Vásquez
+Juana de Ávila
+Luis Hurtado Higuera
+Manuel Dagnino
+Olegario Villalobos
+Raúl Leoni
+Santa Lucía
+Venancio Pulgar
+San Isidro
+
+-Miranda
+Altagracia
+Ana María Campos
+Faría
+San Antonio
+San José
+José Antonio Chávez
+
+-GOAJIRA
+Sinamaica
+Alta Guajira
+Elías Sánchez Rubio
+Guajira
+
+-Rosario de Perijá
+El Rosario
+Donaldo García
+Sixto Zambrano
+
+-San Francisco
+San Francisco
+El Bajo
+Domitila Flores
+Francisco Ochoa
+Los Cortijos
+Marcial Hernández
+José Domingo Rus
+
+-Santa Rita
+Santa Rita
+El Mene
+José Cenobio Urribarrí
+Pedro Lucas Urribarrí
+
+-Simón Bolívar
+Manuel Manrique
+Rafael María Baralt
+Rafael Urdaneta
+
+-Sucre
+Bobures
+El Batey
+Gibraltar
+Heras
+Monseñor Arturo Celestino Álvarez
+Rómulo Gallegos
+
+-Valmore Rodríguez
+La Victoria
+Rafael Urdaneta
+Raúl Cuenca
+
+I - QUE CARGO
+COORDINADOR MUNICIPAL
+COORDINADOR DE NODO
+SUPERVISOR DE NODO
+VERIFICADOR ENCUESTADOR INTEGRAR
+
+PROYECTO E.S.C.V. / ACTIVO
+J - QUE SEGMENTOS TRABAJO
+K - QUE MANZANAS TRABAJO
+L - NUMERO DE ENCUESTAS REALIZADAS?
+
+PROYECTO BOLETA GRAN MISIÓN EQUIDAD Y JUSTICIA SOCIAL
+M - QUE SEGMENTOS TRABAJO
+N - QUE MANZANAS TRABAJO
+O - NUMERO DE ENCUESTAS REALIZADAS?
+
+PROYECT FLASH POS ELECTORAL / ACTIVO
+P - QUE SEGMENTOS TRABAJO
+Q - QUE MANZANAS TRABAJO
+R - NUMERO DE ENCUESTAS REALIZADAS?
+
+PROYECTO CANASTA TIPOLOGÍA ABASTOS Y BODEGAS 2025 / ACTIVO			
+S - SEMANA
+T - QUE SEGMENTOS TRABAJO
+U - QUE MANZANAS TRABAJO
+V - NUMERO DE ENCUESTAS REALIZADAS?
+
+PROYECTO ENCUESTA INDUSTRIAL CUALITATIVA EN ÁMBITOS INDUSTRIALES - EN PLANIFICACIÓN /APENAS SE ACTIVE SE REPORTA LA INFORMACIÓN
+W - QUE SEGMENTOS TRABAJO
+X - QUE MANZANAS TRABAJO
+Y - NUMERO DE ENCUESTAS REALIZADAS?
+ 
+PROYECTO REGISTRO DE INFRAESTRUCTURAS EDUCATIVAS / ACTIVO
+Z - QUE SEGMENTOS TRABAJO
+AA - QUE MANZANAS TRABAJO
+AB - NUMERO DE ENCUESTAS REALIZADAS?
+
+PROYECTO ACTUALIZACIÓN DE LADO DE MANZANAS Y COMUNIDADES EN - EN PLANIFICACIÓN /APENAS SE ACTIVE SE REPORTA LA INFORMACIÓN
+AC - QUE SEGMENTOS TRABAJO
+AD - QUE MANZANAS TRABAJO
+AE - NUMERO DE ENCUESTAS REALIZADAS?
+
+PROYECTO CATASTRO
+AF - QUE SEGMENTOS TRABAJO
+AG - QUE MANZANAS TRABAJO
+AH - NUMERO DE ENCUESTAS REALIZADAS?
+
+PROYECTO INPC
+AI - SEMANA
+AJ - QUE SEGMENTOS TRABAJO
+AK - QUE MANZANAS TRABAJO
+AL - NUMERO DE ENCUESTAS REALIZADAS?

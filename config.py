@@ -17,9 +17,9 @@ ADMIN_ID = int(os.getenv('ADMIN_ID', '123456789'))
 GOOGLE_SPREADSHEET_ID = os.getenv('GOOGLE_SPREADSHEET_ID', '')
 GOOGLE_SHEET_NAME = os.getenv('GOOGLE_SHEET_NAME', 'Hoja1')
 
-# Ruta del JSON de cuenta de servicio (una de estas debe estar definida)
-# GOOGLE_SERVICE_ACCOUNT_FILE o GOOGLE_APPLICATION_CREDENTIALS
-GOOGLE_SERVICE_ACCOUNT_FILE = os.getenv('GOOGLE_SERVICE_ACCOUNT_FILE')
+# Credenciales de Google en formato base64 (OBLIGATORIO)
+# Esta variable debe contener el contenido del archivo JSON convertido a base64
+GOOGLE_CREDENTIALS_BASE64 = os.getenv('GOOGLE_CREDENTIALS_BASE64', '')
 
 # Estados de conversación (para el flujo de recolección de datos)
 # Los estados de conversación se gestionan en handlers/commands.py

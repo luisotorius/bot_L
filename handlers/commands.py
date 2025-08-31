@@ -16,49 +16,128 @@ from config import GOOGLE_SPREADSHEET_ID, GOOGLE_SHEET_NAME  # Configuración de
 
 # DEFINICIÓN DE ESTADOS DE LA CONVERSACIÓN - NUEVO ORDEN
 (
-    CEDULA,           # Paso 1: Cédula (Columna C)
-    CORREO,           # Paso 2: Correo (Columna D)
-    MUNICIPIO,        # Paso 3: Municipio (Columna E)
-    PARROQUIA,        # Paso 4: Parroquia (Columna F)
-    ENTIDAD,          # Paso 5: Estado (Columna G)
-    NODO,             # Paso 6: Nodo (Columna H)
-    CARGO,            # Paso 7: Cargo (Columna I)
-    SELECCION_PROYECTOS,  # Paso 8: Selección de proyectos
-    RELLENAR_PROYECTO,    # Paso 9: Rellenar datos de cada proyecto
-    CONFIRMAR_PROYECTO,   # Paso 10: Confirmación de proyecto individual
-    CONFIRMAR_ENVIO,      # Paso 11: Confirmación final y envío
-) = range(11)  # Asigna números del 0 al 10 a cada estado
+    FECHA_LEVANTAMIENTO,  # Paso 1: Fecha del levantamiento (Columna B)
+    CEDULA,               # Paso 2: Cédula (Columna C)
+    CORREO,               # Paso 3: Correo (Columna D)
+    NODO,                 # Paso 4: Nodo (Columna E)
+    ESTADO,               # Paso 5: Estado (Columna F)
+    MUNICIPIO,            # Paso 6: Municipio (Columna G)
+    PARROQUIA,            # Paso 7: Parroquia (Columna H)
+    CARGO,                # Paso 8: Cargo (Columna I)
+    SELECCION_PROYECTOS,  # Paso 9: Selección de proyectos
+    RELLENAR_PROYECTO,    # Paso 10: Rellenar datos de cada proyecto
+    CONFIRMAR_PROYECTO,   # Paso 11: Confirmación de proyecto individual
+    CONFIRMAR_ENVIO,      # Paso 12: Confirmación final y envío
+) = range(12)  # Asigna números del 0 al 11 a cada estado
 
 # OPCIONES PREESTABLECIDAS
-ENTIDADES = ["ZULIA"]
-MUNICIPIOS = [
-  "ALMIRANTE PADILLA", "BARALT", "CABIMAS", "CATATUMBO", "COLON", 
-  "FRANCISCO JAVIER PULGAR", "JESUS ENRIQUE LOSSADA", "JESUS MARIA SEMPRUN",
-  "LA CAÑADA DE URDANETA", "LAGUNILLAS", "MACHIQUES DE PERIJA", "MARA",
-  "MARACAIBO", "MIRANDA", "PAEZ", "ROSARIO DE PERIJA", "SAN FRANCISCO",
-  "SANTA RITA", "SIMON BOLIVAR", "SUCRE", "VALMORES RODRIGUEZ"
-]
+ESTADOS = ["ZULIA"]
+
+# MUNICIPIOS Y SUS PARROQUIAS CORRESPONDIENTES
+MUNICIPIOS_PARROQUIAS = {
+    "ALMIRANTE PADILLA": ["Isla de Toas", "Monagas"],
+    "BARALT": ["San Timoteo", "General Urdaneta", "Libertador", "Manuel Guanipa Matos", "Rómulo Betancourt", "Pueblo Nuevo"],
+    "CABIMAS": ["Ambrosio", "Carmen Herrera", "Germán Ríos Linares", "La Rosa", "Jorge Hernández", "Rómulo Betancourt", "San Benito", "Arístides Calvani", "Punta Gorda"],
+    "CATATUMBO": ["Encontrados", "Udón Pérez"],
+    "COLON": ["San Carlos del Zulia", "Moralito", "Santa Bárbara", "Santa Cruz del Zulia", "Urribarrí"],
+    "FRANCISCO JAVIER PULGAR": ["Simón Rodríguez", "Carlos Quevedo", "Francisco Javier Pulgar", "Agustín Codazzi"],
+    "JESUS ENRIQUE LOSSADA": ["La Concepción", "José Ramón Yépez", "Mariano Parra León", "San José"],
+    "JESUS MARIA SEMPRUN": ["Jesús María Semprún", "Barí"],
+    "LA CAÑADA DE URDANETA": ["Concepción", "Andrés Bello", "Chiquinquirá", "El Carmelo", "Potreritos"],
+    "LAGUNILLAS": ["Alonso de Ojeda", "Libertad", "Campo Lara", "Eleazar López Contreras", "Venezuela", "El Danto"],
+    "MACHIQUES DE PERIJA": ["Libertad", "Bartolomé de las Casas", "Río Negro", "San José de Perijá"],
+    "MARA": ["San Rafael", "La Sierrita", "Las Parcelas", "Luis de Vicente", "Monseñor Marcos Sergio Godoy", "Ricaurte", "Tamare"],
+    "MARACAIBO": ["Antonio Borjas Romero", "Bolívar", "Cacique Mara", "Caracciolo Parra Pérez", "Cecilio Acosta", "Cristo de Aranza", "Coquivacoa", "Chiquinquirá", "Francisco Eugenio Bustamante", "Idelfonso Vásquez", "Juana de Ávila", "Luis Hurtado Higuera", "Manuel Dagnino", "Olegario Villalobos", "Raúl Leoni", "Santa Lucía", "Venancio Pulgar", "San Isidro"],
+    "MIRANDA": ["Altagracia", "Ana María Campos", "Faría", "San Antonio", "San José", "José Antonio Chávez"],
+    "GOAJIRA": ["Sinamaica", "Alta Guajira", "Elías Sánchez Rubio", "Guajira"],
+    "ROSARIO DE PERIJA": ["El Rosario", "Donaldo García", "Sixto Zambrano"],
+    "SAN FRANCISCO": ["San Francisco", "El Bajo", "Domitila Flores", "Francisco Ochoa", "Los Cortijos", "Marcial Hernández", "José Domingo Rus"],
+    "SANTA RITA": ["Santa Rita", "El Mene", "José Cenobio Urribarrí", "Pedro Lucas Urribarrí"],
+    "SIMON BOLIVAR": ["Manuel Manrique", "Rafael María Baralt", "Rafael Urdaneta"],
+    "SUCRE": ["Bobures", "El Batey", "Gibraltar", "Heras", "Monseñor Arturo Celestino Álvarez", "Rómulo Gallegos"],
+    "VALMORES RODRIGUEZ": ["La Victoria", "Rafael Urdaneta", "Raúl Cuenca"]
+}
+
+# Lista de municipios para mostrar en botones
+MUNICIPIOS = list(MUNICIPIOS_PARROQUIAS.keys())
+
+# CARGOS CON IDENTIFICADORES ÚNICOS
 CARGOS = [
-  "COORDINADOR MUNICIPAL",
-  "COORDINADOR NODO",
-  "SUPERVISOR DE NODO",
-  "VERIFICADOR ENCUESTADOR INTEGRAR"
+    "COORDINADOR MUNICIPAL",
+    "COORDINADOR DE NODO",
+    "SUPERVISOR DE NODO",
+    "VERIFICADOR ENCUESTADOR INTEGRAR"
 ]
 
-# LISTA DE PROYECTOS DISPONIBLES
+# Mapeo de cargos para mostrar nombres completos
+CARGOS_DISPLAY = {
+    "COORDINADOR MUNICIPAL": "COORDINADOR MUNICIPAL",
+    "COORDINADOR DE NODO": "COORDINADOR DE NODO", 
+    "SUPERVISOR DE NODO": "SUPERVISOR DE NODO",
+    "VERIFICADOR ENCUESTADOR INTEGRAR": "VERIFICADOR ENCUESTADOR INTEGRAR"
+}
+
+# LISTA DE PROYECTOS REALES SEGÚN ARCHIVO (CON IDENTIFICADORES ÚNICOS)
 PROYECTOS = [
-    "Proyecto 1", "Proyecto 2", "Proyecto 3",
-    "Proyecto 4", "Proyecto 5", "Proyecto 6",
-    "Proyecto 7", "Proyecto 8", "Proyecto 9"
+    "ESC_V",
+    "BOLETA_GM",
+    "FLASH_POS",
+    "CANASTA_TIPOLOGIA",
+    "ENCUESTA_INDUSTRIAL",
+    "REGISTRO_EDUCATIVAS",
+    "ACTUALIZACION_MANZANAS",
+    "CATASTRO",
+    "INPC"
 ]
+
+# Mapeo de proyectos para mostrar nombres completos
+PROYECTOS_DISPLAY = {
+    "ESC_V": "PROYECTO E.S.C.V. / ACTIVO",
+    "BOLETA_GM": "PROYECTO BOLETA GRAN MISIÓN EQUIDAD Y JUSTICIA SOCIAL",
+    "FLASH_POS": "PROYECTO FLASH POS ELECTORAL / ACTIVO",
+    "CANASTA_TIPOLOGIA": "PROYECTO CANASTA TIPOLOGÍA ABASTOS Y BODEGAS 2025 / ACTIVO",
+    "ENCUESTA_INDUSTRIAL": "PROYECTO ENCUESTA INDUSTRIAL CUALITATIVA EN ÁMBITOS INDUSTRIALES - EN PLANIFICACIÓN",
+    "REGISTRO_EDUCATIVAS": "PROYECTO REGISTRO DE INFRAESTRUCTURAS EDUCATIVAS / ACTIVO",
+    "ACTUALIZACION_MANZANAS": "PROYECTO ACTUALIZACIÓN DE LADO DE MANZANAS Y COMUNIDADES - EN PLANIFICACIÓN",
+    "CATASTRO": "PROYECTO CATASTRO",
+    "INPC": "PROYECTO INPC"
+}
+
+# Mapeo de columnas para cada proyecto en Google Sheets
+PROYECTOS_COLUMNAS = {
+    "ESC_V": ["J", "K", "L"],  # Segmentos, Manzanas, Encuestas
+    "BOLETA_GM": ["M", "N", "O"],  # Segmentos, Manzanas, Encuestas
+    "FLASH_POS": ["P", "Q", "R"],  # Segmentos, Manzanas, Encuestas
+    "CANASTA_TIPOLOGIA": ["S", "T", "U", "V"],  # Semana, Segmentos, Manzanas, Encuestas
+    "ENCUESTA_INDUSTRIAL": ["W", "X", "Y"],  # Segmentos, Manzanas, Encuestas
+    "REGISTRO_EDUCATIVAS": ["Z", "AA", "AB"],  # Segmentos, Manzanas, Encuestas
+    "ACTUALIZACION_MANZANAS": ["AC", "AD", "AE"],  # Segmentos, Manzanas, Encuestas
+    "CATASTRO": ["AF", "AG", "AH"],  # Segmentos, Manzanas, Encuestas
+    "INPC": ["AI", "AJ", "AK", "AL"]  # Semana, Segmentos, Manzanas, Encuestas
+}
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Función inicial que comienza la conversación.
     """
     context.user_data.clear()
-    await update.message.reply_text("👋 Bienvenido.\n\n🪪 Ingrese la CÉDULA DE IDENTIDAD:")
-    return CEDULA
+    await update.message.reply_text("👋 Bienvenido.\n\n📅 Ingrese la FECHA DEL LEVANTAMIENTO (formato: YYYY-MM-DD):")
+    return FECHA_LEVANTAMIENTO
+
+async def fecha_levantamiento(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Maneja el ingreso de la fecha del levantamiento (Columna B).
+    """
+    fecha = update.message.text
+    # Validar formato de fecha
+    try:
+        datetime.strptime(fecha, "%Y-%m-%d")
+        context.user_data["FECHA_LEVANTAMIENTO"] = fecha
+        await update.message.reply_text("🪪 Ingrese la CÉDULA DE IDENTIDAD:")
+        return CEDULA
+    except ValueError:
+        await update.message.reply_text("❌ Formato de fecha incorrecto. Use YYYY-MM-DD (ej: 2024-01-15):")
+        return FECHA_LEVANTAMIENTO
 
 async def cedula(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
@@ -73,19 +152,12 @@ async def correo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     Maneja el ingreso de correo (Columna D).
     """
     context.user_data["CORREO"] = update.message.text
-    
-    # Preparar selección de municipio
-    keyboard = [[InlineKeyboardButton(m, callback_data=m)] for m in MUNICIPIOS]
-    keyboard.append([InlineKeyboardButton("✅ Done", callback_data="done")])
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
-    context.user_data["MUNICIPIO"] = None
-    await update.message.reply_text("🏙 Seleccione el MUNICIPIO:", reply_markup=reply_markup)
-    return MUNICIPIO
+    await update.message.reply_text("📍 Ingrese el NODO:")
+    return NODO
 
 async def municipio(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
-    Maneja la selección de municipio (Columna E).
+    Maneja la selección de municipio (Columna G).
     """
     query = update.callback_query
     await query.answer()
@@ -94,7 +166,18 @@ async def municipio(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not context.user_data["MUNICIPIO"]:
             await query.edit_message_text("⚠️ Debe seleccionar un MUNICIPIO.")
             return MUNICIPIO
-        await query.edit_message_text(f"✅ MUNICIPIO: {context.user_data['MUNICIPIO']}\n\n🏙 Ingrese la PARROQUIA:")
+        
+        # Obtener parroquias del municipio seleccionado
+        municipio_seleccionado = context.user_data["MUNICIPIO"]
+        parroquias = MUNICIPIOS_PARROQUIAS.get(municipio_seleccionado, [])
+        
+        # Preparar selección de parroquia
+        keyboard = [[InlineKeyboardButton(p, callback_data=p)] for p in parroquias]
+        keyboard.append([InlineKeyboardButton("✅ Done", callback_data="done")])
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        context.user_data["PARROQUIA"] = None
+        await query.edit_message_text(f"✅ MUNICIPIO: {municipio_seleccionado}\n\n🏘 Seleccione la PARROQUIA:", reply_markup=reply_markup)
         return PARROQUIA
     else:
         context.user_data["MUNICIPIO"] = query.data
@@ -108,56 +191,84 @@ async def municipio(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def parroquia(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
-    Maneja el ingreso de parroquia (Columna F).
-    """
-    context.user_data["PARROQUIA"] = update.message.text
-    
-    # Preparar selección de entidad (estado)
-    keyboard = [[InlineKeyboardButton(ent, callback_data=ent)] for ent in ENTIDADES]
-    keyboard.append([InlineKeyboardButton("✅ Done", callback_data="done")])
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
-    context.user_data["ENTIDAD"] = None
-    await update.message.reply_text("🏛 Seleccione la ENTIDAD/ESTADO:", reply_markup=reply_markup)
-    return ENTIDAD
-
-async def entidad(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Maneja la selección de entidad/estado (Columna G).
+    Maneja la selección de parroquia (Columna H).
     """
     query = update.callback_query
     await query.answer()
 
     if query.data == "done":
-        if not context.user_data["ENTIDAD"]:
-            await query.edit_message_text("⚠️ Debe seleccionar una ENTIDAD.")
-            return ENTIDAD
-        await query.edit_message_text(f"✅ ENTIDAD: {context.user_data['ENTIDAD']}\n\n🏘 Ingrese el NODO:")
-        return NODO
+        if not context.user_data["PARROQUIA"]:
+            await query.edit_message_text("⚠️ Debe seleccionar una PARROQUIA.")
+            return PARROQUIA
+        
+        # Preparar selección de cargo
+        keyboard = []
+        for cargo_id in CARGOS:
+            keyboard.append([InlineKeyboardButton(CARGOS_DISPLAY[cargo_id], callback_data=cargo_id)])
+        keyboard.append([InlineKeyboardButton("✅ Done", callback_data="done")])
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        context.user_data["CARGO"] = None
+        await query.edit_message_text(f"✅ PARROQUIA: {context.user_data['PARROQUIA']}\n\n👔 Seleccione el CARGO:", reply_markup=reply_markup)
+        return CARGO
     else:
-        context.user_data["ENTIDAD"] = query.data
-        keyboard = [[InlineKeyboardButton(ent, callback_data=ent)] for ent in ENTIDADES]
+        context.user_data["PARROQUIA"] = query.data
+        # Obtener parroquias del municipio seleccionado para mostrar el teclado actualizado
+        municipio_seleccionado = context.user_data["MUNICIPIO"]
+        parroquias = MUNICIPIOS_PARROQUIAS.get(municipio_seleccionado, [])
+        
+        keyboard = [[InlineKeyboardButton(p, callback_data=p)] for p in parroquias]
+        keyboard.append([InlineKeyboardButton("✅ Done", callback_data="done")])
+        await query.edit_message_text(
+            f"👉 PARROQUIA seleccionada: {query.data}\nPresione ✅ Done para continuar.",
+            reply_markup=InlineKeyboardMarkup(keyboard),
+        )
+        return PARROQUIA
+
+async def estado(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Maneja la selección de entidad/estado (Columna F).
+    """
+    query = update.callback_query
+    await query.answer()
+
+    if query.data == "done":
+        if not context.user_data["ESTADO"]:
+            await query.edit_message_text("⚠️ Debe seleccionar una ENTIDAD.")
+            return ESTADO
+        
+        # Preparar selección de municipio
+        keyboard = [[InlineKeyboardButton(m, callback_data=m)] for m in MUNICIPIOS]
+        keyboard.append([InlineKeyboardButton("✅ Done", callback_data="done")])
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        context.user_data["MUNICIPIO"] = None
+        await query.edit_message_text(f"✅ ENTIDAD: {context.user_data['ESTADO']}\n\n🏙 Seleccione el MUNICIPIO:", reply_markup=reply_markup)
+        return MUNICIPIO
+    else:
+        context.user_data["ESTADO"] = query.data
+        keyboard = [[InlineKeyboardButton(est, callback_data=est)] for est in ESTADOS]
         keyboard.append([InlineKeyboardButton("✅ Done", callback_data="done")])
         await query.edit_message_text(
             f"👉 ENTIDAD seleccionada: {query.data}\nPresione ✅ Done para continuar.",
             reply_markup=InlineKeyboardMarkup(keyboard),
         )
-        return ENTIDAD
+        return ESTADO
 
 async def nodo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
-    Maneja el ingreso de nodo (Columna H).
+    Maneja el ingreso de nodo (Columna E).
     """
     context.user_data["NODO"] = update.message.text
     
-    # Preparar selección de cargo
-    keyboard = [[InlineKeyboardButton(c, callback_data=c)] for c in CARGOS]
+    # Preparar selección de estado
+    keyboard = [[InlineKeyboardButton(est, callback_data=est)] for est in ESTADOS]
     keyboard.append([InlineKeyboardButton("✅ Done", callback_data="done")])
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    context.user_data["CARGO"] = None
-    await update.message.reply_text("👔 Seleccione el CARGO:", reply_markup=reply_markup)
-    return CARGO
+    context.user_data["ESTADO"] = None
+    await update.message.reply_text("🏛 Seleccione la ENTIDAD/ESTADO:", reply_markup=reply_markup)
+    return ESTADO
 
 async def cargo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
@@ -175,7 +286,7 @@ async def cargo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["selected_projects"] = []
         keyboard = []
         for proy in PROYECTOS:
-            keyboard.append([InlineKeyboardButton(proy, callback_data=proy)])
+            keyboard.append([InlineKeyboardButton(PROYECTOS_DISPLAY[proy], callback_data=proy)])
         keyboard.append([InlineKeyboardButton("✅ Done", callback_data="done")])
         await query.edit_message_text(
             "✔️ Datos básicos completados.\n\n📌 Seleccione los proyectos en los que participa (puede elegir varios) y luego pulse ✅ Done.",
@@ -183,11 +294,23 @@ async def cargo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return SELECCION_PROYECTOS
     else:
-        context.user_data["CARGO"] = query.data
-        keyboard = [[InlineKeyboardButton(c, callback_data=c)] for c in CARGOS]
+        # Guardar el cargo seleccionado usando el mapeo de display
+        cargo_seleccionado = CARGOS_DISPLAY.get(query.data, query.data)
+        context.user_data["CARGO"] = cargo_seleccionado
+        
+        # Crear teclado actualizado
+        keyboard = []
+        for cargo_id in CARGOS:
+            # Marcar el cargo seleccionado
+            if cargo_id == query.data:
+                keyboard.append([InlineKeyboardButton(f"✅ {CARGOS_DISPLAY[cargo_id]}", callback_data=cargo_id)])
+            else:
+                keyboard.append([InlineKeyboardButton(CARGOS_DISPLAY[cargo_id], callback_data=cargo_id)])
+        
         keyboard.append([InlineKeyboardButton("✅ Done", callback_data="done")])
+        
         await query.edit_message_text(
-            f"👉 CARGO seleccionado: {query.data}\nPresione ✅ Done para continuar.",
+            f"👉 CARGO seleccionado: {cargo_seleccionado}\nPresione ✅ Done para continuar.",
             reply_markup=InlineKeyboardMarkup(keyboard),
         )
         return CARGO
@@ -205,10 +328,22 @@ async def seleccionar_proyectos(update: Update, context: ContextTypes.DEFAULT_TY
             return SELECCION_PROYECTOS
 
         context.user_data["current_project_index"] = 0
-        await query.edit_message_text(
-            f"✍️ Vamos con *{proyectos[0]}*.\n\nIngrese la SEMANA:",
-            parse_mode="Markdown"
-        )
+        primer_proyecto = proyectos[0]
+        
+        # Determinar si el primer proyecto tiene semana
+        columnas = PROYECTOS_COLUMNAS.get(primer_proyecto, [])
+        tiene_semana = len(columnas) == 4
+        
+        if tiene_semana:
+            await query.edit_message_text(
+                f"✍️ Vamos con *{PROYECTOS_DISPLAY[primer_proyecto]}*.\n\nIngrese la SEMANA:",
+                parse_mode="Markdown"
+            )
+        else:
+            await query.edit_message_text(
+                f"✍️ Vamos con *{PROYECTOS_DISPLAY[primer_proyecto]}*.\n\nIngrese los SEGMENTOS TRABAJADOS:",
+                parse_mode="Markdown"
+            )
         return RELLENAR_PROYECTO
     else:
         if seleccion in context.user_data["selected_projects"]:
@@ -219,7 +354,7 @@ async def seleccionar_proyectos(update: Update, context: ContextTypes.DEFAULT_TY
         keyboard = []
         for proy in PROYECTOS:
             marca = "✅ " if proy in context.user_data["selected_projects"] else ""
-            keyboard.append([InlineKeyboardButton(marca + proy, callback_data=proy)])
+            keyboard.append([InlineKeyboardButton(marca + PROYECTOS_DISPLAY[proy], callback_data=proy)])
         keyboard.append([InlineKeyboardButton("✅ Done", callback_data="done")])
 
         await query.edit_message_text(
@@ -242,41 +377,69 @@ async def rellenar_proyecto(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["proyectos_data"][proyecto] = {}
 
     data_proy = context.user_data["proyectos_data"][proyecto]
-
-    # Nuevo orden: Semana -> Segmentos -> Manzanas -> Encuestas
-    if "SEMANA" not in data_proy:
-        data_proy["SEMANA"] = update.message.text
-        await update.message.reply_text("Ingrese los SEGMENTOS TRABAJADOS:")
-        return RELLENAR_PROYECTO
-
-    elif "SEGMENTOS" not in data_proy:
-        data_proy["SEGMENTOS"] = update.message.text
-        await update.message.reply_text("Ingrese las MANZANAS TRABAJADAS:")
-        return RELLENAR_PROYECTO
-
-    elif "MANZANAS" not in data_proy:
-        data_proy["MANZANAS"] = update.message.text
-        await update.message.reply_text("Ingrese la CANTIDAD DE ENCUESTAS:")
-        return RELLENAR_PROYECTO
-
-    elif "ENCUESTAS" not in data_proy:
-        data_proy["ENCUESTAS"] = update.message.text
-        
-        # Mostrar resumen y pedir confirmación para este proyecto
+    
+    # Obtener el mapeo de columnas para este proyecto
+    columnas = PROYECTOS_COLUMNAS.get(proyecto, [])
+    
+    # Determinar qué campos necesita este proyecto
+    tiene_semana = len(columnas) == 4  # Los proyectos con 4 columnas incluyen semana
+    
+    if tiene_semana:
+        # Proyectos que incluyen semana: Semana -> Segmentos -> Manzanas -> Encuestas
+        if "SEMANA" not in data_proy:
+            data_proy["SEMANA"] = update.message.text
+            await update.message.reply_text("Ingrese los SEGMENTOS TRABAJADOS:")
+            return RELLENAR_PROYECTO
+        elif "SEGMENTOS" not in data_proy:
+            data_proy["SEGMENTOS"] = update.message.text
+            await update.message.reply_text("Ingrese las MANZANAS TRABAJADAS:")
+            return RELLENAR_PROYECTO
+        elif "MANZANAS" not in data_proy:
+            data_proy["MANZANAS"] = update.message.text
+            await update.message.reply_text("Ingrese la CANTIDAD DE ENCUESTAS:")
+            return RELLENAR_PROYECTO
+        elif "ENCUESTAS" not in data_proy:
+            data_proy["ENCUESTAS"] = update.message.text
+    else:
+        # Proyectos sin semana: Segmentos -> Manzanas -> Encuestas
+        if "SEGMENTOS" not in data_proy:
+            data_proy["SEGMENTOS"] = update.message.text
+            await update.message.reply_text("Ingrese las MANZANAS TRABAJADAS:")
+            return RELLENAR_PROYECTO
+        elif "MANZANAS" not in data_proy:
+            data_proy["MANZANAS"] = update.message.text
+            await update.message.reply_text("Ingrese la CANTIDAD DE ENCUESTAS:")
+            return RELLENAR_PROYECTO
+        elif "ENCUESTAS" not in data_proy:
+            data_proy["ENCUESTAS"] = update.message.text
+    
+    # Mostrar resumen y pedir confirmación para este proyecto
+    if tiene_semana:
         resumen = f"""
-📋 *Resumen de {proyecto}:*
+📋 *Resumen de {PROYECTOS_DISPLAY[proyecto]}:*
         
-🗓 *Semana:* {data_proy['SEMANA']}
-📍 *Segmentos:* {data_proy['SEGMENTOS']}
-🏘 *Manzanas:* {data_proy['MANZANAS']}
-📊 *Encuestas:* {data_proy['ENCUESTAS']}
+🗓 *Semana:* {data_proy.get('SEMANA', '')}
+📍 *Segmentos:* {data_proy.get('SEGMENTOS', '')}
+🏘 *Manzanas:* {data_proy.get('MANZANAS', '')}
+📊 *Encuestas:* {data_proy.get('ENCUESTAS', '')}
 
 ¿Los datos son correctos? (si/no)
 Si hay algún error, responde 'no' para volver a llenar este proyecto.
         """
+    else:
+        resumen = f"""
+📋 *Resumen de {PROYECTOS_DISPLAY[proyecto]}:*
         
-        await update.message.reply_text(resumen, parse_mode="Markdown")
-        return CONFIRMAR_PROYECTO
+📍 *Segmentos:* {data_proy.get('SEGMENTOS', '')}
+🏘 *Manzanas:* {data_proy.get('MANZANAS', '')}
+📊 *Encuestas:* {data_proy.get('ENCUESTAS', '')}
+
+¿Los datos son correctos? (si/no)
+Si hay algún error, responde 'no' para volver a llenar este proyecto.
+        """
+    
+    await update.message.reply_text(resumen, parse_mode="Markdown")
+    return CONFIRMAR_PROYECTO
 
 async def confirmar_proyecto(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Maneja la confirmación o corrección de cada proyecto individual."""
@@ -290,10 +453,22 @@ async def confirmar_proyecto(update: Update, context: ContextTypes.DEFAULT_TYPE)
         idx += 1
         if idx < len(proyectos):
             context.user_data["current_project_index"] = idx
-            await update.message.reply_text(
-                f"✅ *{proyecto}* confirmado.\n\nAhora vamos con *{proyectos[idx]}*.\nIngrese la SEMANA:",
-                parse_mode="Markdown"
-            )
+            siguiente_proyecto = proyectos[idx]
+            
+            # Determinar si el siguiente proyecto tiene semana
+            columnas = PROYECTOS_COLUMNAS.get(siguiente_proyecto, [])
+            tiene_semana = len(columnas) == 4
+            
+            if tiene_semana:
+                await update.message.reply_text(
+                    f"✅ *{PROYECTOS_DISPLAY[proyecto]}* confirmado.\n\nAhora vamos con *{PROYECTOS_DISPLAY[siguiente_proyecto]}*.\nIngrese la SEMANA:",
+                    parse_mode="Markdown"
+                )
+            else:
+                await update.message.reply_text(
+                    f"✅ *{PROYECTOS_DISPLAY[proyecto]}* confirmado.\n\nAhora vamos con *{PROYECTOS_DISPLAY[siguiente_proyecto]}*.\nIngrese los SEGMENTOS TRABAJADOS:",
+                    parse_mode="Markdown"
+                )
             return RELLENAR_PROYECTO
         else:
             # Todos los proyectos completados y confirmados
@@ -303,10 +478,21 @@ async def confirmar_proyecto(update: Update, context: ContextTypes.DEFAULT_TYPE)
     elif respuesta == 'no':
         # Volver a llenar el mismo proyecto
         del context.user_data["proyectos_data"][proyecto]  # Eliminar datos incorrectos
-        await update.message.reply_text(
-            f"🔄 Vamos a corregir *{proyecto}*.\n\nIngrese la SEMANA:",
-            parse_mode="Markdown"
-        )
+        
+        # Determinar si este proyecto tiene semana
+        columnas = PROYECTOS_COLUMNAS.get(proyecto, [])
+        tiene_semana = len(columnas) == 4
+        
+        if tiene_semana:
+            await update.message.reply_text(
+                f"🔄 Vamos a corregir *{PROYECTOS_DISPLAY[proyecto]}*.\n\nIngrese la SEMANA:",
+                parse_mode="Markdown"
+            )
+        else:
+            await update.message.reply_text(
+                f"🔄 Vamos a corregir *{PROYECTOS_DISPLAY[proyecto]}*.\n\nIngrese los SEGMENTOS TRABAJADOS:",
+                parse_mode="Markdown"
+            )
         return RELLENAR_PROYECTO
         
     else:
@@ -321,21 +507,29 @@ async def mostrar_resumen_final(update: Update, context: ContextTypes.DEFAULT_TY
     resumen = "📋 *RESUMEN FINAL DE TODOS LOS DATOS*\n\n"
     
     # Datos básicos
+    resumen += f"*📅 Fecha de Levantamiento:* {user_data.get('FECHA_LEVANTAMIENTO', '')}\n"
     resumen += f"*👤 Datos Personales:*\n"
     resumen += f"🪪 Cédula: {user_data.get('CEDULA', '')}\n"
     resumen += f"📧 Correo: {user_data.get('CORREO', '')}\n"
+    resumen += f"📍 Nodo: {user_data.get('NODO', '')}\n"
+    resumen += f"🏛 Estado: {user_data.get('ESTADO', '')}\n"
     resumen += f"🏙 Municipio: {user_data.get('MUNICIPIO', '')}\n"
     resumen += f"🏘 Parroquia: {user_data.get('PARROQUIA', '')}\n"
-    resumen += f"🏛 Estado: {user_data.get('ENTIDAD', '')}\n"
-    resumen += f"📍 Nodo: {user_data.get('NODO', '')}\n"
     resumen += f"👔 Cargo: {user_data.get('CARGO', '')}\n\n"
     
     # Proyectos
     resumen += f"*📊 Proyectos seleccionados ({len(user_data.get('selected_projects', []))}):*\n"
     for proyecto in user_data.get("selected_projects", []):
         data = proyectos_data.get(proyecto, {})
-        resumen += f"🔹 *{proyecto}:*\n"
-        resumen += f"   🗓 Semana: {data.get('SEMANA', '')}\n"
+        resumen += f"🔹 *{PROYECTOS_DISPLAY[proyecto]}:*\n"
+        
+        # Determinar si el proyecto tiene semana
+        columnas = PROYECTOS_COLUMNAS.get(proyecto, [])
+        tiene_semana = len(columnas) == 4
+        
+        if tiene_semana:
+            resumen += f"   🗓 Semana: {data.get('SEMANA', '')}\n"
+        
         resumen += f"   📍 Segmentos: {data.get('SEGMENTOS', '')}\n"
         resumen += f"   🏘 Manzanas: {data.get('MANZANAS', '')}\n"
         resumen += f"   📊 Encuestas: {data.get('ENCUESTAS', '')}\n\n"
@@ -357,7 +551,15 @@ async def confirmar_envio(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             await update.message.reply_text("✅ 📤 *Datos enviados con éxito a Google Sheets.*", parse_mode="Markdown")
         except Exception as e:
-            await update.message.reply_text(f"❌ *Error enviando a Google Sheets:* {e}", parse_mode="Markdown")
+            # Limpiar el mensaje de error para evitar problemas de formato
+            error_msg = str(e)
+            # Remover caracteres problemáticos para Markdown
+            error_msg = error_msg.replace('*', '').replace('_', '').replace('`', '').replace('[', '').replace(']', '')
+            # Limitar la longitud del mensaje
+            if len(error_msg) > 100:
+                error_msg = error_msg[:100] + "..."
+            
+            await update.message.reply_text(f"❌ *Error enviando a Google Sheets:*\n`{error_msg}`", parse_mode="Markdown")
     else:
         await update.message.reply_text("❌ Proceso cancelado. Los datos no fueron enviados.")
     
@@ -370,57 +572,85 @@ def _build_google_row(context: ContextTypes.DEFAULT_TYPE) -> List[str]:
     user_data = context.user_data
     now = datetime.now()
     
-    # Datos automáticos (columnas A-B)
+    # Datos automáticos (columna A)
     automaticos = [
         now.strftime("%Y-%m-%d %H:%M:%S"),  # Columna A - Marca temporal
-        now.strftime("%Y-%m-%d"),           # Columna B - Fecha de levantamiento
     ]
     
-    # Datos básicos del usuario (columnas C-I) - Mismo orden que la conversación
+    # Fecha del levantamiento (columna B)
+    fecha_levantamiento = [
+        user_data.get("FECHA_LEVANTAMIENTO", ""),  # Columna B - Fecha de levantamiento
+    ]
+    
+    # Datos básicos del usuario (columnas C-I)
     basicos = [
         user_data.get("CEDULA", ""),        # Columna C - CÉDULA DE IDENTIDAD
         user_data.get("CORREO", ""),        # Columna D - CORREO ELECTRONICO
-        user_data.get("MUNICIPIO", ""),     # Columna E - MUNICIPIO
-        user_data.get("PARROQUIA", ""),     # Columna F - PARROQUIA
-        user_data.get("ENTIDAD", ""),       # Columna G - ESTADO
-        user_data.get("NODO", ""),          # Columna H - NODO
+        user_data.get("NODO", ""),          # Columna E - NODO
+        user_data.get("ESTADO", ""),        # Columna F - ESTADO
+        user_data.get("MUNICIPIO", ""),     # Columna G - MUNICIPIO
+        user_data.get("PARROQUIA", ""),     # Columna H - PARROQUIA
         user_data.get("CARGO", ""),         # Columna I - CARGO
     ]
     
-    # Datos de proyectos (columnas J-AS)
+    # Datos de proyectos (columnas J-AL)
     proyectos_cols: List[str] = []
     selected: List[str] = user_data.get("selected_projects", [])
     data: dict = user_data.get("proyectos_data", {})
     
-    for i in range(1, 10):
-        nombre = f"Proyecto {i}"
-        if nombre in selected and nombre in data:
-            d = data.get(nombre, {})
-            proyectos_cols.extend([
-                d.get("SEMANA", ""),        # Semana
-                d.get("SEGMENTOS", ""),     # Segmentos trabajados
-                d.get("MANZANAS", ""),      # Manzanas trabajadas
-                d.get("ENCUESTAS", ""),     # Cantidad de encuestas
-            ])
-        else:
-            proyectos_cols.extend(["", "", "", ""])
+    # Crear un diccionario con todos los proyectos y sus datos
+    todos_proyectos = {
+        "ESC_V": ["", "", ""],  # J, K, L
+        "BOLETA_GM": ["", "", ""],  # M, N, O
+        "FLASH_POS": ["", "", ""],  # P, Q, R
+        "CANASTA_TIPOLOGIA": ["", "", "", ""],  # S, T, U, V
+        "ENCUESTA_INDUSTRIAL": ["", "", ""],  # W, X, Y
+        "REGISTRO_EDUCATIVAS": ["", "", ""],  # Z, AA, AB
+        "ACTUALIZACION_MANZANAS": ["", "", ""],  # AC, AD, AE
+        "CATASTRO": ["", "", ""],  # AF, AG, AH
+        "INPC": ["", "", "", ""]  # AI, AJ, AK, AL
+    }
+    
+    # Llenar los datos de los proyectos seleccionados
+    for proyecto in selected:
+        if proyecto in data and proyecto in todos_proyectos:
+            proyecto_data = data[proyecto]
+            columnas = PROYECTOS_COLUMNAS.get(proyecto, [])
+            
+            if len(columnas) == 4:  # Proyecto con semana
+                todos_proyectos[proyecto] = [
+                    proyecto_data.get("SEMANA", ""),        # Semana
+                    proyecto_data.get("SEGMENTOS", ""),     # Segmentos trabajados
+                    proyecto_data.get("MANZANAS", ""),      # Manzanas trabajadas
+                    proyecto_data.get("ENCUESTAS", "")      # Cantidad de encuestas
+                ]
+            else:  # Proyecto sin semana
+                todos_proyectos[proyecto] = [
+                    proyecto_data.get("SEGMENTOS", ""),     # Segmentos trabajados
+                    proyecto_data.get("MANZANAS", ""),      # Manzanas trabajadas
+                    proyecto_data.get("ENCUESTAS", "")      # Cantidad de encuestas
+                ]
+    
+    # Convertir el diccionario a una lista plana en el orden correcto
+    for proyecto in todos_proyectos.values():
+        proyectos_cols.extend(proyecto)
 
-    return automaticos + basicos + proyectos_cols
+    return automaticos + fecha_levantamiento + basicos + proyectos_cols
 
 # Manejador de conversación que agrupa todos los estados y handlers
 def get_conv_handler() -> ConversationHandler:
     """
-    Crea y configura el manejador de conversación con todos los estados и handlers.
+    Crea y configura el manejador de conversación con todos los estados y handlers.
     """
     return ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
-            # Nuevo orden de estados según las columnas
+            FECHA_LEVANTAMIENTO: [MessageHandler(filters.TEXT & ~filters.COMMAND, fecha_levantamiento)],
             CEDULA: [MessageHandler(filters.TEXT & ~filters.COMMAND, cedula)],
             CORREO: [MessageHandler(filters.TEXT & ~filters.COMMAND, correo)],
             MUNICIPIO: [CallbackQueryHandler(municipio)],
-            PARROQUIA: [MessageHandler(filters.TEXT & ~filters.COMMAND, parroquia)],
-            ENTIDAD: [CallbackQueryHandler(entidad)],
+            PARROQUIA: [CallbackQueryHandler(parroquia)],
+            ESTADO: [CallbackQueryHandler(estado)],
             NODO: [MessageHandler(filters.TEXT & ~filters.COMMAND, nodo)],
             CARGO: [CallbackQueryHandler(cargo)],
             SELECCION_PROYECTOS: [CallbackQueryHandler(seleccionar_proyectos)],
@@ -437,8 +667,3 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Maneja la cancelación de la conversación."""
     await update.message.reply_text("Operación cancelada.")
     return ConversationHandler.END
-    """
-    Maneja la cancelación de la conversación.
-    """
-    await update.message.reply_text("Operación cancelada.")
-    return ConversationHandler.END  # Terminar la conversación

@@ -29,7 +29,6 @@ def _get_sheets_service():
     """Obtiene el servicio de Google Sheets."""
     credentials = _build_credentials()
     return build("sheets", "v4", credentials=credentials).spreadsheets()
-
 def append_row(spreadsheet_id: str, sheet_name: str, row_values: List[Optional[str]]):
     """
     Inserta una fila al final de la hoja especificada.
@@ -37,16 +36,20 @@ def append_row(spreadsheet_id: str, sheet_name: str, row_values: List[Optional[s
     if not spreadsheet_id or not sheet_name:
         raise ValueError("spreadsheet_id y sheet_name son requeridos")
 
-    sheets = _get_sheets_service()
-    
-    range_name = f"{sheet_name}!A:AS"
-    values = [row_values]
+    try:
+        sheets = _get_sheets_service()
+        
+        range_name = f"{sheet_name}!A:AS"
+        values = [row_values]
 
-    request = sheets.values().append(
-        spreadsheetId=spreadsheet_id,
-        range=range_name,
-        valueInputOption="USER_ENTERED",
-        insertDataOption="INSERT_ROWS",
-        body={"values": values},
-    )
-    return request.execute()
+        request = sheets.values().append(
+            spreadsheetId=spreadsheet_id,
+            range=range_name,
+            valueInputOption="USER_ENTERED",
+            insertDataOption="INSERT_ROWS",
+            body={"values": values},
+        )
+        return request.execute()
+    except Exception as e:
+        print(f"Error en append_row: {e}")
+        raise
